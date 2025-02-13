@@ -1,16 +1,15 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+import './globals.css'
+import { Inter } from 'next/font/google'
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Initialize the Inter font
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] })
 
 // Define metadata for the application
-export const metadata: Metadata = {
-  title: "Modern SaaS Platform",
-  description: "A modern SaaS platform built with Next.js and Tailwind CSS",
-};
+export const metadata = {
+  title: 'HPT AI Insights',
+  description: 'Human Performance Technology AI Insights Platform',
+}
 
 // Root layout component that wraps all pages
 export default function RootLayout({
@@ -19,10 +18,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={inter.className}>
-      <body className="antialiased">
+    <html lang="en" className="h-full bg-gray-50">
+      <body className={`${inter.className} h-full`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
-  );
+  )
 }
