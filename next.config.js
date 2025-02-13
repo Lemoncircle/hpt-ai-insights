@@ -14,9 +14,19 @@ const nextConfig = {
 
   // Performance optimizations
   experimental: {
-    optimizeCss: true,
+    optimizeCss: {
+      cssModules: true,
+      // Add critters configuration
+      critters: {
+        preload: 'media',
+        pruneSource: true,
+      },
+    },
     optimizePackageImports: ['firebase', '@firebase/firestore'],
   },
+
+  // Output configuration
+  output: 'standalone',
 
   // Security headers
   async headers() {
@@ -53,6 +63,12 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   swcMinify: true,
+
+  // Image optimization
+  images: {
+    domains: ['firebasestorage.googleapis.com'],
+    unoptimized: true,
+  },
 }
 
 module.exports = nextConfig 
