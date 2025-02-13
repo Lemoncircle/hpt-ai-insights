@@ -12,73 +12,83 @@ interface FileUploadProps {
 }
 
 export default function FileUpload({ onUploadComplete }: FileUploadProps) {
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [successCount, setSuccessCount] = useState(0);
 
-  const processCSV = async (file: File) => {
+  interface CSVRow {
+    [key: string]: string;
+  }
+
+  const processCSV = async (csvData: CSVRow[]) => {
     setIsUploading(true);
     setError(null);
     setUploadProgress(0);
     setSuccessCount(0);
 
     try {
-      const text = await file.text();
-      Papa.parse(text, {
-        header: true,
-        skipEmptyLines: true,
-        complete: async (results) => {
-          const totalRows = results.data.length;
-          let processed = 0;
+      const totalRows = csvData.length;
+      let processed = 0;
 
-          for (const row of results.data as any[]) {
-            try {
-              // Convert CSV data to survey response format
-              const surveyResponse = {
-                userId: 'csv_import',
-                userEmail: row.email || 'csv_import@example.com',
-                answers: {
-                  1: row.reason || '',
-                  2: row.role || '',
-                  3: row.familiarity?.toString() || '3',
-                },
-                submittedAt: new Date().toISOString(),
-                createdAt: serverTimestamp(),
-                importedFrom: 'csv',
-              };
+      for (const row of csvData) {
+        try {
+          // Convert CSV data to survey response format
+          const surveyResponse = {
+            userId: 'csv_import',
+            userEmail: row.email || 'csv_import@example.com',
+            answers: {
+              1: row.reason || '',
+              2: row.role || '',
+              3: row.familiarity?.toString() || '3',
+            },
+            submittedAt: new Date().toISOString(),
+            createdAt: serverTimestamp(),
+            importedFrom: 'csv',
+          };
 
-              await addDoc(collection(db, 'survey_responses'), surveyResponse);
-              processed++;
-              setSuccessCount(processed);
-              setUploadProgress((processed / totalRows) * 100);
-            } catch (err) {
-              console.error('Error uploading row:', err);
-            }
-          }
-
-          setIsUploading(false);
-          onUploadComplete();
-        },
-        error: (error) => {
-          setError('Failed to parse CSV file: ' + error.message);
-          setIsUploading(false);
+          await addDoc(collection(db, 'survey_responses'), surveyResponse);
+          processed++;
+          setSuccessCount(processed);
+          setUploadProgress((processed / totalRows) * 100);
+        } catch (error: unknown) {
+          console.error('Error uploading row:', error);
         }
-      });
-    } catch (err: any) {
-      setError('Failed to read file: ' + err.message);
+      }
+
+      setIsUploading(false);
+      onUploadComplete();
+    } catch (error: unknown) {
+      console.error('Error processing CSV:', error);
+      setError(error instanceof Error ? error.message : 'An unknown error occurred');
       setIsUploading(false);
     }
   };
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
+    setError(null);
     const file = acceptedFiles[0];
     if (file && file.type === 'text/csv') {
-      processCSV(file);
+      file.text().then(text => {
+        Papa.parse(text, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+            processCSV(results.data as CSVRow[]);
+          },
+          error: (error: Error) => {
+            setError('Failed to parse CSV file: ' + error.message);
+            setIsUploading(false);
+          }
+        });
+      }).catch(error => {
+        setError('Failed to read file: ' + (error instanceof Error ? error.message : 'Unknown error'));
+        setIsUploading(false);
+      });
     } else {
       setError('Please upload a valid CSV file');
     }
-  }, []);
+  }, [processCSV, setError, setIsUploading]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
