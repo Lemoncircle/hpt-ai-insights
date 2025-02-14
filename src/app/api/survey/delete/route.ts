@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { headers } from 'next/headers';
-import { auth } from '@/lib/firebase';
 
 export async function DELETE(request: Request) {
   try {
@@ -13,8 +12,7 @@ export async function DELETE(request: Request) {
     }
 
     // Get the authorization header
-    const headersList = headers();
-    const authHeader = headersList.get('authorization');
+    const authHeader = request.headers.get('authorization');
     
     if (!authHeader) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
