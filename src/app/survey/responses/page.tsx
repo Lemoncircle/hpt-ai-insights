@@ -5,10 +5,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import FileUpload from '@/components/survey/FileUpload';
 import AIAnalysis from '@/components/survey/AIAnalysis';
+import ResponsChart from '@/components/survey/ResponsChart';
 import { motion } from 'framer-motion';
 
 interface Question {
@@ -196,9 +197,9 @@ export default function ResponsesPage() {
       })) as SurveyResponse[];
       console.log('Fetched responses:', fetchedResponses);
       setResponses(fetchedResponses);
-      setLoading(false);
-    } catch (error: unknown) {
+    } catch (error) {
       console.error('Error fetching responses:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -229,7 +230,7 @@ export default function ResponsesPage() {
       return searchString.includes(searchTerm.toLowerCase());
     })
     .sort((a, b) => {
-      if (a.createdAt && b.createdAt) {
+      if (sortConfig.key === 'createdAt' && a.createdAt && b.createdAt) {
         return sortConfig.direction === 'asc'
           ? a.createdAt.seconds - b.createdAt.seconds
           : b.createdAt.seconds - a.createdAt.seconds;
@@ -305,10 +306,10 @@ export default function ResponsesPage() {
       console.log('Document successfully deleted');
       await fetchResponses();
       setDeletingResponse(null);
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Detailed error deleting response:', {
         error,
-        errorMessage: error instanceof Error ? error.message : 'An unknown error occurred',
+        errorMessage: error.message,
         responseId,
         userId: user?.uid
       });
@@ -350,10 +351,10 @@ export default function ResponsesPage() {
       
       await fetchResponses();
       setShowDeleteAllDialog(false);
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error('Detailed error deleting all responses:', {
         error,
-        errorMessage: error instanceof Error ? error.message : 'An unknown error occurred',
+        errorMessage: error.message,
         userId: user?.uid,
         numberOfResponses: responses.length
       });

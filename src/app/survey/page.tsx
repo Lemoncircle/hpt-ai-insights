@@ -156,7 +156,6 @@ export default function SurveyPage() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [isCompleted, setIsCompleted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleNext = async (answer: string) => {
     const newAnswers = { ...answers, [questions[currentQuestion].id]: answer };
@@ -184,7 +183,7 @@ export default function SurveyPage() {
             createdAt: serverTimestamp(),
           });
           console.log('Survey response saved to Firestore successfully with ID:', docRef.id);
-        } catch (firestoreError: unknown) {
+        } catch (firestoreError) {
           console.error('Firestore save failed:', firestoreError);
           // Fallback to localStorage
           const localResponses = JSON.parse(localStorage.getItem('survey_responses') || '[]');
@@ -194,11 +193,32 @@ export default function SurveyPage() {
         }
 
         setIsCompleted(true);
-      } catch (error: unknown) {
-        console.error('Error submitting survey:', error);
+      } catch (error: any) {
+        console.error('Error saving survey response:', error);
+        let errorMessage = 'Failed to save your response. ';
+        if (error.code === 'permission-denied') {
+          errorMessage += 'Saving locally instead.';
+          // Try localStorage as last resort
+          try {
+            const localResponses = JSON.parse(localStorage.getItem('survey_responses') || '[]');
+            localResponses.push({
+              userId: user?.uid || 'anonymous',
+              userEmail: user?.email || 'anonymous',
+              answers: newAnswers,
+              submittedAt: new Date().toISOString(),
+            });
+            localStorage.setItem('survey_responses', JSON.stringify(localResponses));
+            setIsCompleted(true);
+            return;
+          } catch (localError) {
+            errorMessage = 'Could not save response. Please try again later.';
+          }
+        }
+        alert(errorMessage);
         setIsSubmitting(false);
-        setError(error instanceof Error ? error.message : 'An unknown error occurred');
+        return;
       }
+      setIsSubmitting(false);
     }
   };
 

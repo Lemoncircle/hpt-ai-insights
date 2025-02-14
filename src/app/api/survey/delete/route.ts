@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import { adminDb } from '@/lib/firebase-admin';
 import { headers } from 'next/headers';
-
-interface DeleteError extends Error {
-  code?: string;
-  details?: string;
-}
+import { auth } from '@/lib/firebase';
 
 export async function DELETE(request: Request) {
   try {
@@ -28,19 +24,17 @@ export async function DELETE(request: Request) {
       // Delete the document using admin SDK
       await adminDb.collection('survey_responses').doc(responseId).delete();
       return NextResponse.json({ success: true });
-    } catch (error: unknown) {
-      const err = error as DeleteError;
-      console.error('Error deleting document:', err);
+    } catch (error: any) {
+      console.error('Error deleting document:', error);
       return NextResponse.json(
-        { error: 'Failed to delete response', details: err.message || 'Unknown error' },
+        { error: 'Failed to delete response', details: error.message },
         { status: 500 }
       );
     }
-  } catch (error: unknown) {
-    const err = error as DeleteError;
-    console.error('Error in delete endpoint:', err);
+  } catch (error: any) {
+    console.error('Error in delete endpoint:', error);
     return NextResponse.json(
-      { error: 'Failed to process request', details: err.message || 'Unknown error' },
+      { error: 'Failed to process request', details: error.message },
       { status: 500 }
     );
   }

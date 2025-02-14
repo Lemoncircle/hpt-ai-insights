@@ -33,10 +33,10 @@ export default function AuthPage() {
         {/* Header */}
         <div className="text-center">
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Welcome to YourSaaS
+            Welcome to HPT AI Insights
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account to continue
+            Sign in to access your organization's performance insights
           </p>
           {error && (
             <p className="mt-2 text-sm text-red-600">

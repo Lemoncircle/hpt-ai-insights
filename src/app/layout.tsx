@@ -1,15 +1,16 @@
-import './globals.css'
-import { Inter } from 'next/font/google'
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 // Initialize the Inter font
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ["latin"] });
 
 // Define metadata for the application
-export const metadata = {
-  title: 'HPT AI Insights',
-  description: 'Human Performance Technology AI Insights Platform',
-}
+export const metadata: Metadata = {
+  title: "HPT AI Insights",
+  description: "Leveraging Human Performance Technology and AI to enhance employee development and organizational decision-making",
+};
 
 // Root layout component that wraps all pages
 export default function RootLayout({
@@ -18,10 +19,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full bg-gray-50">
-      <body className={`${inter.className} h-full`}>
+    <html lang="en" className={inter.className}>
+      <body className="antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
-  )
+  );
 }

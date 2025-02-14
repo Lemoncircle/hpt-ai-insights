@@ -15,7 +15,7 @@ export default function Navbar() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                YourSaaS
+                HPT AI Insights
               </span>
             </Link>
           </div>

@@ -3,18 +3,19 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 
-interface ChartProps {
-  responses: { answer: string; section: string }[];
+interface ResponsChartProps {
+  responses: string[];
+  question: string;
 }
 
-export default function ResponsChart({ responses }: ChartProps) {
+export default function ResponsChart({ responses, question }: ResponsChartProps) {
   const stats = useMemo(() => {
     const counts: { [key: string]: number } = {};
     let total = 0;
     
     responses.forEach(response => {
-      if (response.answer === 'No response') return;
-      counts[response.answer] = (counts[response.answer] || 0) + 1;
+      if (response === 'No response') return;
+      counts[response] = (counts[response] || 0) + 1;
       total++;
     });
     

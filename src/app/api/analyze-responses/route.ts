@@ -133,7 +133,7 @@ Important: Do not use any special characters, bullet points, or markdown formatt
       console.log('Final parsed sections:', sections);
       return NextResponse.json(sections);
 
-    } catch (apiError: unknown) {
+    } catch (apiError: any) {
       console.error('API or Parsing Error:', apiError);
       return NextResponse.json({
         traits: 'Unable to analyze traits at this time.',
