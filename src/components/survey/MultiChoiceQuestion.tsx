@@ -6,6 +6,7 @@ interface MultiChoiceQuestionProps {
   question: string;
   options: string[];
   onAnswer: (answer: string) => void;
+  isLastQuestion?: boolean;
 }
 
 const container = {
@@ -26,7 +27,8 @@ const item = {
 export default function MultiChoiceQuestion({
   question,
   options,
-  onAnswer
+  onAnswer,
+  isLastQuestion = false
 }: MultiChoiceQuestionProps) {
   return (
     <div className="space-y-6">
@@ -55,6 +57,7 @@ export default function MultiChoiceQuestion({
                   {String.fromCharCode(65 + index)}
                 </span>
                 {option}
+                {isLastQuestion && index === options.length - 1 ? ' and Submit' : ''}
               </span>
             </button>
           </motion.div>

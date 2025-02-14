@@ -6,9 +6,10 @@ import { motion } from 'framer-motion';
 interface TextQuestionProps {
   question: string;
   onAnswer: (answer: string) => void;
+  isLastQuestion?: boolean;
 }
 
-export default function TextQuestion({ question, onAnswer }: TextQuestionProps) {
+export default function TextQuestion({ question, onAnswer, isLastQuestion = false }: TextQuestionProps) {
   const [answer, setAnswer] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -54,7 +55,7 @@ export default function TextQuestion({ question, onAnswer }: TextQuestionProps) 
           disabled={!answer.trim()}
           className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Next
+          {isLastQuestion ? 'Submit' : 'Next'}
         </button>
       </motion.div>
     </form>

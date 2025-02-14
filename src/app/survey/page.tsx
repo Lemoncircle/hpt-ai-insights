@@ -228,6 +228,7 @@ export default function SurveyPage() {
 
   const renderQuestion = () => {
     const question = questions[currentQuestion];
+    const isLastQuestion = currentQuestion === questions.length - 1;
 
     switch (question.type) {
       case 'text':
@@ -235,6 +236,7 @@ export default function SurveyPage() {
           <TextQuestion
             question={question.question}
             onAnswer={handleNext}
+            isLastQuestion={isLastQuestion}
           />
         );
       case 'multiChoice':
@@ -243,6 +245,7 @@ export default function SurveyPage() {
             question={question.question}
             options={question.options || []}
             onAnswer={handleNext}
+            isLastQuestion={isLastQuestion}
           />
         );
       case 'rating':
