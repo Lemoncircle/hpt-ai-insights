@@ -379,26 +379,27 @@ export default function ResponsesPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-16">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <main className="max-w-7xl mx-auto pt-20 px-4">
-        <div className="bg-white rounded-lg shadow-lg p-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+        <div className="bg-white rounded-lg shadow-lg p-4 sm:p-6">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0 mb-6">
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Survey Responses</h1>
               <p className="mt-1 text-sm text-gray-500">
                 {responses.length} total {responses.length === 1 ? 'response' : 'responses'}
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-auto">
                 <input
                   type="text"
                   placeholder="Search responses..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 <svg
                   className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
@@ -414,10 +415,11 @@ export default function ResponsesPage() {
                   />
                 </svg>
               </div>
-              <div className="flex items-center space-x-2">
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
                 <button
                   onClick={() => setShowUpload(!showUpload)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                  className="w-full sm:w-auto px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
                 >
                   <svg
                     className="w-5 h-5"
@@ -437,7 +439,7 @@ export default function ResponsesPage() {
                 {responses.length > 0 && (
                   <button
                     onClick={() => setShowDeleteAllDialog(true)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+                    className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center space-x-2"
                     disabled={isDeleting}
                   >
                     <svg
@@ -462,7 +464,7 @@ export default function ResponsesPage() {
 
           {/* File Upload Section */}
           {showUpload && (
-            <div className="mb-8 p-6 bg-gray-50 rounded-lg">
+            <div className="mb-6 p-4 sm:p-6 bg-gray-50 rounded-lg">
               <FileUpload onUploadComplete={() => {
                 setShowUpload(false);
                 fetchResponses();
@@ -475,30 +477,30 @@ export default function ResponsesPage() {
             {filteredAndSortedResponses.length > 0 ? (
               filteredAndSortedResponses.map((response, index) => (
                 <div key={response.id} className="border rounded-lg p-4 hover:bg-gray-50">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start space-y-3 sm:space-y-0">
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">
                         Respondent #{index + 1}
                         {response.userEmail && (
-                          <span className="ml-2 text-sm text-gray-500">
+                          <span className="block sm:inline text-sm text-gray-500 sm:ml-2">
                             ({response.userEmail})
                           </span>
                         )}
                       </h3>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 mt-1">
                         Submitted {format(new Date(response.submittedAt || response.createdAt.seconds * 1000), 'PPpp')}
                       </p>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex flex-row sm:flex-col space-x-2 sm:space-x-0 sm:space-y-2">
                       <button
                         onClick={() => setSelectedResponse(selectedResponse === response.id ? null : response.id)}
-                        className="px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                        className="flex-1 sm:flex-none px-3 py-1 text-sm text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
                       >
                         {selectedResponse === response.id ? 'Hide Details' : 'View Details'}
                       </button>
                       <button
                         onClick={() => setDeletingResponse(response.id)}
-                        className="px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        className="flex-1 sm:flex-none px-3 py-1 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors"
                         disabled={isDeleting}
                       >
                         Delete
@@ -530,22 +532,22 @@ export default function ResponsesPage() {
           {/* Delete Single Response Confirmation Dialog */}
           {deletingResponse && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Confirm Delete</h3>
                 <p className="text-gray-600 mb-6">
                   Are you sure you want to delete this response? This action cannot be undone.
                 </p>
-                <div className="flex justify-end space-x-3">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                   <button
                     onClick={() => setDeletingResponse(null)}
-                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors order-2 sm:order-1"
                     disabled={isDeleting}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => handleDeleteResponse(deletingResponse)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                    className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center order-1 sm:order-2"
                     disabled={isDeleting}
                   >
                     {isDeleting ? (
@@ -565,22 +567,22 @@ export default function ResponsesPage() {
           {/* Delete All Responses Confirmation Dialog */}
           {showDeleteAllDialog && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-              <div className="bg-white rounded-lg p-6 max-w-md w-full">
+              <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Confirm Delete All</h3>
                 <p className="text-gray-600 mb-6">
                   Are you sure you want to delete all {responses.length} responses? This action cannot be undone.
                 </p>
-                <div className="flex justify-end space-x-3">
+                <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                   <button
                     onClick={() => setShowDeleteAllDialog(false)}
-                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                    className="w-full sm:w-auto px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors order-2 sm:order-1"
                     disabled={isDeleting}
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleDeleteAllResponses}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center"
+                    className="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center order-1 sm:order-2"
                     disabled={isDeleting}
                   >
                     {isDeleting ? (
