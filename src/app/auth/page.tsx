@@ -47,8 +47,8 @@ export default function AuthPage() {
 
         {/* Auth Card */}
         <div className="mt-8 bg-white py-8 px-4 shadow-xl rounded-lg sm:px-10">
-          {/* Social Login Buttons */}
-          <div className="space-y-4">
+          {/* Google Login Button */}
+          <div>
             <button
               onClick={signInWithGoogle}
               className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
@@ -72,30 +72,6 @@ export default function AuthPage() {
                 />
               </svg>
               Continue with Google
-            </button>
-
-            <button
-              className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-                <path
-                  fill="#00A4EF"
-                  d="M1.584 3.753h9.989v9.989H1.584z"
-                />
-                <path
-                  fill="#FFB900"
-                  d="M12.416 3.753h9.989v9.989h-9.989z"
-                />
-                <path
-                  fill="#28A8EA"
-                  d="M1.584 14.585h9.989v9.989H1.584z"
-                />
-                <path
-                  fill="#0078D4"
-                  d="M12.416 14.585h9.989v9.989h-9.989z"
-                />
-              </svg>
-              Continue with Microsoft
             </button>
           </div>
 
