@@ -92,29 +92,35 @@ export default function DashboardPage() {
       {
         title: 'Total Responses',
         value: totalResponses,
-        change: '+12% from last month',
-        trend: 'up',
+        change: totalResponses === 0 ? 'No survey responses yet' : '',
+        trend: 'neutral',
         description: 'Total number of survey responses received'
       },
       {
         title: 'Satisfaction Rate',
         value: `${satisfactionRate}%`,
-        change: satisfactionRate > 75 ? 'Good' : satisfactionRate > 50 ? 'Fair' : 'Needs Attention',
-        trend: satisfactionRate > 75 ? 'up' : satisfactionRate > 50 ? 'neutral' : 'down',
+        change: totalResponses === 0 ? 'No survey responses yet' : 
+          satisfactionRate > 75 ? 'Good' : satisfactionRate > 50 ? 'Fair' : 'Needs Attention',
+        trend: totalResponses === 0 ? 'neutral' :
+          satisfactionRate > 75 ? 'up' : satisfactionRate > 50 ? 'neutral' : 'down',
         description: 'Percentage of employees satisfied with their role'
       },
       {
         title: 'Work-Life Balance',
         value: `${workLifeBalanceRate}%`,
-        change: workLifeBalanceRate > 75 ? 'Good' : workLifeBalanceRate > 50 ? 'Fair' : 'Needs Attention',
-        trend: workLifeBalanceRate > 75 ? 'up' : workLifeBalanceRate > 50 ? 'neutral' : 'down',
+        change: totalResponses === 0 ? 'No survey responses yet' :
+          workLifeBalanceRate > 75 ? 'Good' : workLifeBalanceRate > 50 ? 'Fair' : 'Needs Attention',
+        trend: totalResponses === 0 ? 'neutral' :
+          workLifeBalanceRate > 75 ? 'up' : workLifeBalanceRate > 50 ? 'neutral' : 'down',
         description: 'Employees reporting good work-life balance'
       },
       {
         title: 'Growth Support',
         value: `${growthSupportRate}%`,
-        change: growthSupportRate > 75 ? 'Good' : growthSupportRate > 50 ? 'Fair' : 'Needs Attention',
-        trend: growthSupportRate > 75 ? 'up' : growthSupportRate > 50 ? 'neutral' : 'down',
+        change: totalResponses === 0 ? 'No survey responses yet' :
+          growthSupportRate > 75 ? 'Good' : growthSupportRate > 50 ? 'Fair' : 'Needs Attention',
+        trend: totalResponses === 0 ? 'neutral' :
+          growthSupportRate > 75 ? 'up' : growthSupportRate > 50 ? 'neutral' : 'down',
         description: 'Employees feeling supported in their professional growth'
       }
     ]);
