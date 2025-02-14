@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
 import Papa from 'papaparse';
+import type { ParseError } from 'papaparse';
 import { db } from '@/lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -25,14 +26,14 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
 
     try {
       const text = await file.text();
-      Papa.parse(text, {
+      Papa.parse<any>(text, {
         header: true,
         skipEmptyLines: true,
         complete: async (results) => {
           const totalRows = results.data.length;
           let processed = 0;
 
-          for (const row of results.data as any[]) {
+          for (const row of results.data) {
             try {
               // Convert CSV data to survey response format
               const surveyResponse = {
@@ -60,8 +61,8 @@ export default function FileUpload({ onUploadComplete }: FileUploadProps) {
           setIsUploading(false);
           onUploadComplete();
         },
-        error: (error) => {
-          setError('Failed to parse CSV file: ' + error.message);
+        error: (error: Error, file?: any) => {
+          setError(`Failed to parse CSV file: ${error.message}`);
           setIsUploading(false);
         }
       });
