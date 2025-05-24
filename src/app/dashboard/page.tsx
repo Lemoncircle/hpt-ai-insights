@@ -7,6 +7,7 @@ import { collection, query, orderBy, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import Navbar from '@/components/Navbar';
 import ResponsChart from '@/components/survey/ResponsChart';
+import ReportGenerator from '@/components/dashboard/ReportGenerator';
 import { motion } from 'framer-motion';
 
 interface SurveyResponse {
@@ -34,26 +35,26 @@ export default function DashboardPage() {
   const [metrics, setMetrics] = useState<MetricCard[]>([]);
 
   // Fetch survey responses
-  useEffect(() => {
-    const fetchResponses = async () => {
-      try {
-        const q = query(collection(db, 'survey_responses'), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const fetchedResponses = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        })) as SurveyResponse[];
-        setResponses(fetchedResponses);
-        
-        // Calculate metrics
-        calculateMetrics(fetchedResponses);
-      } catch (error) {
-        console.error('Error fetching responses:', error);
-      } finally {
-        setLoadingResponses(false);
-      }
-    };
+  const fetchResponses = async () => {
+    try {
+      const q = query(collection(db, 'survey_responses'), orderBy('createdAt', 'desc'));
+      const querySnapshot = await getDocs(q);
+      const fetchedResponses = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as SurveyResponse[];
+      setResponses(fetchedResponses);
+      
+      // Calculate metrics
+      calculateMetrics(fetchedResponses);
+    } catch (error) {
+      console.error('Error fetching responses:', error);
+    } finally {
+      setLoadingResponses(false);
+    }
+  };
 
+  useEffect(() => {
     if (user) {
       fetchResponses();
     }
@@ -126,6 +127,11 @@ export default function DashboardPage() {
     ]);
   };
 
+  const handleReportGenerated = () => {
+    // Refresh the responses and metrics after a new report is generated
+    fetchResponses();
+  };
+
   // Redirect to auth page if user is not logged in
   useEffect(() => {
     if (!loading && !user) {
@@ -155,6 +161,11 @@ export default function DashboardPage() {
           <p className="mt-2 text-sm text-gray-600">
             Here's an overview of your organization's performance insights.
           </p>
+        </div>
+
+        {/* Report Generator Section */}
+        <div className="mb-8">
+          <ReportGenerator onReportGenerated={handleReportGenerated} />
         </div>
 
         {/* Metrics Grid */}
