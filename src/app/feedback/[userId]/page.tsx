@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { FeedbackReportView } from '@/components/FeedbackReport/FeedbackReportView';
 import { FeedbackReport, FeedbackEntry } from '@/lib/types/feedback';
-import { generateFeedbackReportFromSurvey } from '@/lib/utils/feedbackAnalysis';
+import { generateFeedbackReportFromEntries } from '@/lib/utils/feedbackAnalysis';
 
 // This would typically come from your database
 async function fetchUserFeedback(userId: string): Promise<{
@@ -64,7 +64,7 @@ export default async function Page({ params }: { params: { userId: string } }) {
     const { entries, userName } = await fetchUserFeedback(params.userId);
     
     // Generate the feedback report
-    const report: FeedbackReport = generateFeedbackReportFromSurvey(
+    const report: FeedbackReport = generateFeedbackReportFromEntries(
       params.userId,
       'survey1', // This would come from your survey context
       entries

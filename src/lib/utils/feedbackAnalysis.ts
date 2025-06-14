@@ -256,4 +256,84 @@ export const generateFeedbackReportFromSurvey = (
       actionItems: actionItems.slice(0, 3) // Top 3 action items
     }
   };
-}; 
+};
+
+// Generate a complete feedback report from feedback entries
+export function generateFeedbackReportFromEntries(
+  userId: string,
+  surveyId: string,
+  entries: FeedbackEntry[]
+): FeedbackReport {
+  // Create properly typed value scores object
+  const valueScores: FeedbackReport['valueScores'] = {
+    Collaboration: {
+      averageScore: calculateValueScore(entries, 'Collaboration'),
+      trend: 'stable',
+      strengths: analyzeQualitativeFeedback(entries, 'Collaboration').strengths,
+      opportunities: analyzeQualitativeFeedback(entries, 'Collaboration').opportunities,
+      supportingQuotes: analyzeQualitativeFeedback(entries, 'Collaboration').quotes
+    },
+    Respect: {
+      averageScore: calculateValueScore(entries, 'Respect'),
+      trend: 'stable',
+      strengths: analyzeQualitativeFeedback(entries, 'Respect').strengths,
+      opportunities: analyzeQualitativeFeedback(entries, 'Respect').opportunities,
+      supportingQuotes: analyzeQualitativeFeedback(entries, 'Respect').quotes
+    },
+    Transparency: {
+      averageScore: calculateValueScore(entries, 'Transparency'),
+      trend: 'stable',
+      strengths: analyzeQualitativeFeedback(entries, 'Transparency').strengths,
+      opportunities: analyzeQualitativeFeedback(entries, 'Transparency').opportunities,
+      supportingQuotes: analyzeQualitativeFeedback(entries, 'Transparency').quotes
+    },
+    Communication: {
+      averageScore: calculateValueScore(entries, 'Communication'),
+      trend: 'stable',
+      strengths: analyzeQualitativeFeedback(entries, 'Communication').strengths,
+      opportunities: analyzeQualitativeFeedback(entries, 'Communication').opportunities,
+      supportingQuotes: analyzeQualitativeFeedback(entries, 'Communication').quotes
+    }
+  };
+
+  // Create properly typed stakeholder alignment object
+  const stakeholderAlignment: FeedbackReport['stakeholderAlignment'] = {
+    PeopleWeHelp: {
+      alignment: calculateStakeholderAlignment(entries, 'PeopleWeHelp').alignment,
+      supportingEvidence: calculateStakeholderAlignment(entries, 'PeopleWeHelp').evidence
+    },
+    Supporters: {
+      alignment: calculateStakeholderAlignment(entries, 'Supporters').alignment,
+      supportingEvidence: calculateStakeholderAlignment(entries, 'Supporters').evidence
+    },
+    Referrers: {
+      alignment: calculateStakeholderAlignment(entries, 'Referrers').alignment,
+      supportingEvidence: calculateStakeholderAlignment(entries, 'Referrers').evidence
+    }
+  };
+
+  // Identify overall trends
+  const allStrengths = Object.values(valueScores)
+    .flatMap(score => score.strengths);
+  const allOpportunities = Object.values(valueScores)
+    .flatMap(score => score.opportunities);
+
+  // Generate action items based on opportunities
+  const actionItems = allOpportunities.map(opportunity => 
+    `Focus on ${opportunity.toLowerCase()}`
+  );
+
+  return {
+    id: `report-${Date.now()}`,
+    userId,
+    surveyId,
+    generatedAt: new Date(),
+    valueScores,
+    stakeholderAlignment,
+    overallTrends: {
+      strengths: allStrengths.slice(0, 3), // Top 3 strengths
+      opportunities: allOpportunities.slice(0, 3), // Top 3 opportunities
+      actionItems: actionItems.slice(0, 3) // Top 3 action items
+    }
+  };
+} 
