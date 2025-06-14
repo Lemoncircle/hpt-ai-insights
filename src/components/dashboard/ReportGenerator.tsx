@@ -5,9 +5,10 @@ import { motion } from 'framer-motion';
 import { db } from '@/lib/firebase';
 import { collection, addDoc } from 'firebase/firestore';
 import * as XLSX from 'xlsx';
+import { FeedbackReport } from '@/lib/types/feedback';
 
 interface ReportGeneratorProps {
-  onReportGenerated: () => void;
+  onReportGenerated: (report: FeedbackReport) => void;
 }
 
 interface SurveyData {
@@ -36,13 +37,28 @@ export default function ReportGenerator({ onReportGenerated }: ReportGeneratorPr
     setIsUploading(true);
 
     try {
+      console.log('Starting file processing for:', file.name);
       const data = await readFileData(file);
-      // Store the data in Firestore
+      console.log('File data read successfully:', data);
+      
+      // Validate data structure
+      if (!Array.isArray(data) || data.length === 0) {
+        throw new Error('Invalid file format: No data found or incorrect structure');
+      }
+      
+      console.log('Storing survey data...');
       await storeSurveyData(data);
+      console.log('Survey data stored successfully');
+      
       setUploadedFile(file);
     } catch (err) {
-      setError('Error processing file. Please try again.');
-      console.error('Error processing file:', err);
+      console.error('Detailed error processing file:', {
+        error: err,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      });
+      setError(err instanceof Error ? err.message : 'Error processing file. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -54,19 +70,43 @@ export default function ReportGenerator({ onReportGenerated }: ReportGeneratorPr
       
       reader.onload = (e) => {
         try {
+          console.log('FileReader onload triggered');
           const data = e.target?.result;
+          if (!data) {
+            throw new Error('No data read from file');
+          }
+          
+          console.log('Reading workbook...');
           const workbook = XLSX.read(data, { type: 'binary' });
+          console.log('Workbook sheets:', workbook.SheetNames);
+          
           const sheetName = workbook.SheetNames[0];
+          if (!sheetName) {
+            throw new Error('No sheets found in the workbook');
+          }
+          
           const worksheet = workbook.Sheets[sheetName];
+          console.log('Converting sheet to JSON...');
           const jsonData = XLSX.utils.sheet_to_json(worksheet) as SurveyData[];
+          
+          if (!jsonData || jsonData.length === 0) {
+            throw new Error('No data found in the sheet');
+          }
+          
+          console.log('Successfully converted to JSON:', jsonData.length, 'rows');
           resolve(jsonData);
         } catch (err) {
+          console.error('Error in readFileData:', err);
           reject(err);
         }
       };
 
-      reader.onerror = () => reject(new Error('Error reading file'));
+      reader.onerror = (error) => {
+        console.error('FileReader error:', error);
+        reject(new Error('Error reading file: ' + error));
+      };
       
+      console.log('Starting file read...');
       if (file.name.endsWith('.csv')) {
         reader.readAsText(file);
       } else {
@@ -77,19 +117,29 @@ export default function ReportGenerator({ onReportGenerated }: ReportGeneratorPr
 
   const storeSurveyData = async (data: SurveyData[]) => {
     try {
-      const batch = data.map(item => ({
-        answers: item,
-        createdAt: new Date(),
-        importedFrom: uploadedFile?.name || 'Unknown source'
-      }));
+      console.log('Preparing to store', data.length, 'survey responses');
+      const batch = data.map(item => {
+        // Validate required fields
+        if (!item || typeof item !== 'object') {
+          throw new Error('Invalid data format: Each row must be an object');
+        }
+        
+        return {
+          answers: item,
+          createdAt: new Date(),
+          importedFrom: uploadedFile?.name || 'Unknown source'
+        };
+      });
 
+      console.log('Storing responses in Firestore...');
       // Store each response in Firestore
       for (const item of batch) {
         await addDoc(collection(db, 'survey_responses'), item);
       }
+      console.log('Successfully stored all responses');
     } catch (err) {
       console.error('Error storing survey data:', err);
-      throw err;
+      throw new Error('Failed to store survey data: ' + (err instanceof Error ? err.message : 'Unknown error'));
     }
   };
 
@@ -100,23 +150,150 @@ export default function ReportGenerator({ onReportGenerated }: ReportGeneratorPr
     setError(null);
 
     try {
-      // TODO: Implement AI report generation
-      // This is a placeholder for the AI analysis
-      const mockReport = `Based on the analysis of ${uploadedFile.name}, here are the key insights:
+      // Read and format the uploaded file data for the AI prompt
+      const data = await readFileData(uploadedFile);
+      // Format the data as a readable string for the AI
+      const reportDataForAI = data.map((row, idx) => {
+        return `Response #${idx + 1}:\n` +
+          Object.entries(row).map(([key, value]) => `  ${key}: ${value}`).join('\n');
+      }).join('\n\n');
 
-1. Overall Satisfaction: The majority of respondents (75%) reported high satisfaction with their roles.
-2. Work-Life Balance: 60% of employees feel they have a good work-life balance.
-3. Professional Growth: 70% of respondents feel supported in their professional development.
-4. Team Communication: Communication effectiveness is rated as "Good" by 65% of the team.
+      // Prepare the prompt for the AI
+      const prompt = `
+Background:
+Purpose:
+To build a culture of trust, our organisation has implemented a structured, values-based peer feedback process. It's designed to ensure our people:
+- Are clear on what's expected of them, both internally and externally
+- Develop self-awareness through constructive trends-based feedback
+- Embed values into daily behaviours that directly support stakeholder outcomes
 
-Recommendations:
-- Consider implementing more flexible work arrangements
-- Strengthen the mentorship program
-- Regular team-building activities
-- Quarterly feedback sessions`;
+Stakeholder Expectations:
+People We Help: Pets go home safely and in good condition; clear communication; timely updates; ability to rely on us despite limited proof
+Supporters: Appreciate transparency and proof of impact; want donations used responsibly
+Referrers: Clear, timely comms (within 12 hrs); regular updates; smooth logistics; ability to rely on us
+Theme across all stakeholders: TRUST — in our care, consistency, communication, and collaboration.
 
-      setReport(mockReport);
-      onReportGenerated();
+Our Team Values (with Behavioural Definitions):
+Collaboration: Engage the right people, share calendars/info, create space for team thinking, contribute to visibility
+Respect: Consider others' time and needs; balance work demands respectfully
+Transparency: Provide timely, direct feedback; share info that affects work; avoid withholding relevant context
+Communication: Be open about challenges and day-to-day experience; ensure consistent external updates
+
+How the Feedback Process Works:
+- Every two months, all team members complete an anonymous peer feedback survey, scoring themselves and each other against each value.
+- Ratings focus on observed behaviours, not personality.
+- Feedback is aggregated and modelled to identify trends — outliers are excluded.
+- Each individual receives constructive summaries, highlighting:
+  - Strengths across values
+  - Opportunities for growth
+  - How these behaviours align with stakeholder expectations
+
+Strategic Value of the Process:
+This approach connects internal culture with external performance:
+Transparency: Timely comms and issue resolution that protect trust with referrers and clients and ensure efficient delivery of tasks with all required context
+Respect: Ensures colleagues and stakeholders feel heard and supported
+Collaboration: Drives joined-up care that ensures pets go home ready and safe
+Communication: Delivers impact stories to donors and updates to clients without gaps
+
+Rules for Qualitative Feedback:
+1. Look for Thematic Consistency: If multiple peers mention similar behaviours or gaps, it becomes a trend.
+2. Extract Quotes for Colour: Where appropriate, include anonymised excerpts.
+3. Filter by Value: Group qualitative comments under value headers (Collaboration, Transparency, etc.) to match them with quantitative scores.
+4. Ignore One-Off Comments: If something is only mentioned once, treat with caution unless egregious.
+
+---
+
+Given the following survey data for an employee, generate a report in the following format:
+
+Name: [Employee name]
+Top Value Observed: [Team Value]
+Area for Growth: [Team Value]
+
+Value         Average Rating (out of 5)
+---------------------------------------
+Collaboration   [Score]
+Communication   [Score]
+Respect         [Score]
+Transparency    [Score]
+
+Summary:
+[Summary based on feedback received]
+
+Suggested Behavioural Shift:
+[Suggested behavioural shifts based on the feedback received]
+
+Survey Data:
+${reportDataForAI}
+
+Please follow the template and rules strictly. Output only the report, no extra commentary.`;
+
+      // Call the new API endpoint to generate the report
+      const response = await fetch('/api/generate-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const result = await response.json();
+      if (result.report) {
+        setReport(result.report);
+      } else {
+        setError(result.error || 'Failed to generate report.');
+      }
+      onReportGenerated({
+        id: `report-${Date.now()}`,
+        userId: 'placeholder-user-id',
+        surveyId: 'placeholder-survey-id',
+        generatedAt: new Date(),
+        valueScores: {
+          Collaboration: {
+            averageScore: 0,
+            trend: 'stable',
+            strengths: [],
+            opportunities: [],
+            supportingQuotes: []
+          },
+          Respect: {
+            averageScore: 0,
+            trend: 'stable',
+            strengths: [],
+            opportunities: [],
+            supportingQuotes: []
+          },
+          Transparency: {
+            averageScore: 0,
+            trend: 'stable',
+            strengths: [],
+            opportunities: [],
+            supportingQuotes: []
+          },
+          Communication: {
+            averageScore: 0,
+            trend: 'stable',
+            strengths: [],
+            opportunities: [],
+            supportingQuotes: []
+          }
+        },
+        stakeholderAlignment: {
+          PeopleWeHelp: {
+            alignment: 0,
+            supportingEvidence: []
+          },
+          Supporters: {
+            alignment: 0,
+            supportingEvidence: []
+          },
+          Referrers: {
+            alignment: 0,
+            supportingEvidence: []
+          }
+        },
+        overallTrends: {
+          strengths: [],
+          opportunities: [],
+          actionItems: []
+        }
+      });
     } catch (err) {
       setError('Error generating report. Please try again.');
       console.error('Error generating report:', err);
