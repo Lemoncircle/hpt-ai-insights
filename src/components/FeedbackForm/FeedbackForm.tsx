@@ -1,4 +1,5 @@
 "use client";
+// Ensuring this file is a client component for Next.js
 
 import React, { useState } from 'react';
 import { Value, VALUE_DEFINITIONS, Rating } from '@/lib/types/feedback';
