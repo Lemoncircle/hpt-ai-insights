@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState } from 'react';
 import { Value, VALUE_DEFINITIONS, Rating } from '@/lib/types/feedback';
 import { submitFeedback } from '@/lib/firebase/db';
