@@ -60,26 +60,5 @@ async function fetchUserFeedback(userId: string): Promise<{
 }
 
 export default async function Page({ params }: { params: { userId: string } }) {
-  try {
-    const { entries, userName } = await fetchUserFeedback(params.userId);
-    
-    // Generate the feedback report
-    const report: FeedbackReport = generateFeedbackReportFromEntries(
-      params.userId,
-      'survey1', // This would come from your survey context
-      entries
-    );
-    
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <FeedbackReportView
-          report={report}
-          userName={userName}
-        />
-      </div>
-    );
-  } catch (error) {
-    console.error('Error fetching feedback report:', error);
-    notFound();
-  }
+  return <div>User ID: {params.userId}</div>;
 } 
